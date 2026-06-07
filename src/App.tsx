@@ -1052,24 +1052,23 @@ function AppInner() {
 
       {/* ══ Header ══ */}
       <header
-        className="w-full py-4 px-6 border-b border-white/20 text-white flex items-center justify-between sticky top-0 z-40 shadow-sm backdrop-blur-md select-none"
+        className="w-full py-3 px-4 border-b border-white/20 text-white flex items-center justify-between sticky top-0 z-40 shadow-sm backdrop-blur-md select-none"
         style={{ backgroundColor: theme.primary }}
-        dir="rtl"
       >
-        {/* يمين: لوحة الإدارة (ترس) */}
-        <div className="flex items-center gap-2">
+        {/* يسار: ترس لوحة الإدارة */}
+        <div className="flex items-center">
           <button
             type="button"
             onClick={handleOpenSettings}
-            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+            className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition cursor-pointer flex items-center justify-center"
+            title="لوحة الإدارة"
           >
-            <Settings className="w-4 h-4" />
-            <span className="hidden sm:inline">لوحة الإدارة</span>
+            <Settings className="w-5 h-5" />
           </button>
         </div>
 
-        {/* وسط: Brand */}
-        <div className="flex items-center gap-2 text-center">
+        {/* وسط: Logo + اسم الموقع */}
+        <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 shadow-lg overflow-hidden">
             {appConfig.logoBase64
               ? <img src={appConfig.logoBase64} alt="Logo" className="w-full h-full object-cover" />
@@ -1077,21 +1076,21 @@ function AppInner() {
             }
           </div>
           <div className="text-right">
-            <h1 className="text-md sm:text-xl font-black font-sans leading-none text-white">
+            <h1 className="text-base sm:text-lg font-black font-sans leading-none text-white">
               {appConfig.websiteTitle || 'Group m'}
             </h1>
             <span className="text-[9px] text-slate-300 block mt-0.5">سحابي مباشر • Secure Cloud Sync</span>
           </div>
         </div>
 
-        {/* يسار: Sync HUD (نشط) */}
-        <div className="flex items-center gap-2 min-w-[60px] justify-start">
+        {/* يمين: Sync HUD (نشط) */}
+        <div className="flex items-center justify-end min-w-[40px]">
           <SyncHud />
         </div>
       </header>
 
-      {/* ══ Navigation Tabs ══ */}
-      <div className="w-full bg-white border-b border-slate-200 flex items-center justify-center gap-1 px-4 py-2 sticky top-[64px] z-30 shadow-sm" dir="rtl">
+      {/* ══ Navigation Tabs — استمارة التسجيل شمال | تركيبات يمين ══ */}
+      <div className="w-full bg-white border-b border-slate-200 flex items-center justify-center gap-1 px-4 py-2 sticky top-[60px] z-30 shadow-sm">
         <button
           type="button"
           onClick={() => setActiveView('registration')}
