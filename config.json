@@ -167,7 +167,7 @@
     "owner": "youssefmd2244-droid",
     "repo": "Group-m",
     "branch": "main",
-    "dataPath": "assets/data.json",
+    "dataPath": "assets-data/data.json",
     "configPath": "config.json",
     "isEnabled": true
   }
