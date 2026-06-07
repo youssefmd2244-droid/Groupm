@@ -95,7 +95,7 @@ class ErrorBoundary extends Component<{ children: React.ReactNode }, EBState> {
 const HARDCODED_OWNER     = 'youssefmd2244-droid';
 const HARDCODED_REPO      = 'Group-m';
 const HARDCODED_BRANCH    = 'main';
-const HARDCODED_DATA_PATH = 'src/data.json';
+const HARDCODED_DATA_PATH = 'assets/data.json';
 // Token Fallback — يُستخدم فقط عند غياب كل المصادر الأخرى
 // ضعه هنا إذا أردت hardcoded token، وإلا اتركه فارغاً
 const HARDCODED_TOKEN_FALLBACK = (import.meta as any).env?.VITE_GITHUB_TOKEN?.trim() || '';
