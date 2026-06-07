@@ -1054,20 +1054,21 @@ function AppInner() {
       <header
         className="w-full py-4 px-6 border-b border-white/20 text-white flex items-center justify-between sticky top-0 z-40 shadow-sm backdrop-blur-md select-none"
         style={{ backgroundColor: theme.primary }}
+        dir="rtl"
       >
-        {/* Admin button */}
+        {/* يمين: لوحة الإدارة (ترس) */}
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleOpenSettings}
-            className="p-2 ml-1 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition cursor-pointer flex items-center gap-1.5 text-xs font-bold"
           >
             <Settings className="w-4 h-4" />
             <span className="hidden sm:inline">لوحة الإدارة</span>
           </button>
         </div>
 
-        {/* Brand */}
+        {/* وسط: Brand */}
         <div className="flex items-center gap-2 text-center">
           <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 shadow-lg overflow-hidden">
             {appConfig.logoBase64
@@ -1083,14 +1084,14 @@ function AppInner() {
           </div>
         </div>
 
-        {/* ① Sync HUD — يُميز بين فشل مؤقت وفشل دائم */}
-        <div className="flex items-center gap-2 min-w-[60px] justify-end">
+        {/* يسار: Sync HUD (نشط) */}
+        <div className="flex items-center gap-2 min-w-[60px] justify-start">
           <SyncHud />
         </div>
       </header>
 
       {/* ══ Navigation Tabs ══ */}
-      <div className="w-full bg-white border-b border-slate-200 flex items-center justify-center gap-1 px-4 py-2 sticky top-[64px] z-30 shadow-sm">
+      <div className="w-full bg-white border-b border-slate-200 flex items-center justify-center gap-1 px-4 py-2 sticky top-[64px] z-30 shadow-sm" dir="rtl">
         <button
           type="button"
           onClick={() => setActiveView('registration')}
