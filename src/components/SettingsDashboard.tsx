@@ -132,6 +132,15 @@ export default function SettingsDashboard({
   const [currentDevice] = React.useState<DeviceInfo | null>(() => readCurrentDevice());
   const [editingDevice, setEditingDevice] = React.useState<{id:string,name:string,phone:string} | null>(null);
 
+  // ── اتصال بجهاز آخر (Remote Device Viewer) ──────────────────────
+  const [remoteSearch, setRemoteSearch] = React.useState({ name: '', phone: '' });
+  const [remoteStatus, setRemoteStatus] = React.useState<'idle' | 'loading' | 'found' | 'notfound' | 'error'>('idle');
+  const [remoteDeviceData, setRemoteDeviceData] = React.useState<{
+    device: DeviceInfo;
+    users: UserRecord[];
+    installations: InstallationRecord[];
+  } | null>(null);
+
   // Search & Pagination in Inbox
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -3157,6 +3166,202 @@ export default function SettingsDashboard({
                     </div>
                   ))}
                 </div>
+
+                {/* ══════════════════════════════════════════════════
+                    📡 اتصال بجهاز آخر — شوف بيانات مستخدم تاني
+                    ════════════════════════════════════════════════ */}
+                <div className="border-t-2 border-slate-100 pt-4 mt-2">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-xl bg-violet-100 flex items-center justify-center">
+                      <Link size={14} className="text-violet-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-slate-800">اتصال بجهاز مستخدم آخر</p>
+                      <p className="text-[10px] text-slate-400">أدخل اسم ورقم موبايل أي مستخدم سجّل — تجيلك بياناته كاملة</p>
+                    </div>
+                  </div>
+
+                  {/* Search Form */}
+                  <div className="bg-violet-50 rounded-2xl p-3 space-y-2 border border-violet-100">
+                    <input
+                      type="text"
+                      value={remoteSearch.name}
+                      onChange={e => setRemoteSearch(p => ({ ...p, name: e.target.value }))}
+                      placeholder="الاسم (كما سجّله)"
+                      className="w-full px-3 py-2 rounded-xl border border-violet-200 bg-white text-xs font-bold outline-none focus:border-violet-400 text-right"
+                      dir="rtl"
+                    />
+                    <input
+                      type="tel"
+                      value={remoteSearch.phone}
+                      onChange={e => setRemoteSearch(p => ({ ...p, phone: e.target.value.replace(/\D/g, '') }))}
+                      placeholder="رقم الموبايل"
+                      className="w-full px-3 py-2 rounded-xl border border-violet-200 bg-white text-xs font-mono outline-none focus:border-violet-400"
+                      dir="ltr"
+                    />
+                    <button
+                      type="button"
+                      disabled={!remoteSearch.name.trim() || !remoteSearch.phone.trim() || remoteStatus === 'loading'}
+                      onClick={async () => {
+                        setRemoteStatus('loading');
+                        setRemoteDeviceData(null);
+                        try {
+                          // ① ابحث في قائمة الأجهزة المسجلة
+                          const allDevices = readDevicesList();
+                          const nameQ  = remoteSearch.name.trim().toLowerCase();
+                          const phoneQ = remoteSearch.phone.trim();
+                          const matched = allDevices.find(d =>
+                            d.userName.toLowerCase().includes(nameQ) &&
+                            d.userPhone.replace(/\D/g,'').includes(phoneQ.replace(/\D/g,''))
+                          );
+                          if (!matched) {
+                            setRemoteStatus('notfound');
+                            return;
+                          }
+                          // ② البيانات من GitHub (users + installations المرتبطة بالمستخدم ده)
+                          // نبحث في users الحالية (اللي عندنا من GitHub بالفعل)
+                          const allUsers = users;
+                          const allInstalls = appConfig.installations ?? [];
+                          // فلتر: المستخدمين اللي اسمهم أو تليفونهم يطابق
+                          const matchedUsers = allUsers.filter(u => {
+                            const fullN = `${u.fullName ?? ''} ${u.fatherName ?? ''} ${u.lastName ?? ''}`.toLowerCase();
+                            const phoneMatch = (u.phone ?? '').replace(/\D/g,'');
+                            return fullN.includes(nameQ) || phoneMatch.includes(phoneQ.replace(/\D/g,''));
+                          });
+                          const matchedInstalls = allInstalls.filter(inst => {
+                            const fullN = (inst.clientName ?? '').toLowerCase();
+                            return fullN.includes(nameQ) ||
+                              (inst.clientMobile ?? '').replace(/\D/g,'').includes(phoneQ.replace(/\D/g,'')) ||
+                              (inst.workerName ?? '').toLowerCase().includes(nameQ);
+                          });
+                          setRemoteDeviceData({
+                            device: matched,
+                            users: matchedUsers,
+                            installations: matchedInstalls,
+                          });
+                          setRemoteStatus('found');
+                        } catch {
+                          setRemoteStatus('error');
+                        }
+                      }}
+                      className="w-full py-2 rounded-xl text-[11px] font-black transition cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ backgroundColor: remoteStatus === 'loading' ? '#ddd6fe' : '#7c3aed', color: 'white' }}
+                    >
+                      {remoteStatus === 'loading' ? '⏳ جاري البحث...' : '🔍 اتصال وجلب البيانات'}
+                    </button>
+                  </div>
+
+                  {/* نتيجة: مش موجود */}
+                  {remoteStatus === 'notfound' && (
+                    <div className="mt-3 p-3 bg-rose-50 rounded-2xl border border-rose-100 text-center">
+                      <p className="text-xs font-black text-rose-600">❌ مفيش جهاز مسجّل بالاسم والرقم ده</p>
+                      <p className="text-[10px] text-slate-400 mt-1">تأكد إن المستخدم فتح الموقع وسجّل بياناته</p>
+                    </div>
+                  )}
+
+                  {/* نتيجة: خطأ */}
+                  {remoteStatus === 'error' && (
+                    <div className="mt-3 p-3 bg-amber-50 rounded-2xl border border-amber-100 text-center">
+                      <p className="text-xs font-black text-amber-600">⚠️ حصل خطأ — حاول تاني</p>
+                    </div>
+                  )}
+
+                  {/* نتيجة: موجود ✅ */}
+                  {remoteStatus === 'found' && remoteDeviceData && (
+                    <div className="mt-3 space-y-3">
+                      {/* بيانات الجهاز */}
+                      <div className="p-3 bg-violet-50 rounded-2xl border border-violet-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-2 h-2 rounded-full bg-violet-500" />
+                          <span className="text-[11px] font-black text-violet-700">📱 بيانات الجهاز</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                          <div><span className="text-slate-500 font-bold">الاسم: </span><span className="font-black text-slate-800">{remoteDeviceData.device.userName}</span></div>
+                          <div><span className="text-slate-500 font-bold">الموبايل: </span><span className="font-mono">{remoteDeviceData.device.userPhone}</span></div>
+                          <div className="col-span-2"><span className="text-slate-500 font-bold">معرف: </span><span className="font-mono text-[9px] text-slate-500">{remoteDeviceData.device.deviceId}</span></div>
+                          <div className="col-span-2"><span className="text-slate-500 font-bold">تاريخ التسجيل: </span><span>{new Date(remoteDeviceData.device.registeredAt).toLocaleDateString('ar-EG')}</span></div>
+                        </div>
+                      </div>
+
+                      {/* إحصائيات */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="p-3 bg-cyan-50 rounded-2xl border border-cyan-100 text-center">
+                          <div className="text-lg font-black text-cyan-700">{remoteDeviceData.users.length}</div>
+                          <div className="text-[10px] text-slate-500 font-bold">📋 وارد / عملاء</div>
+                        </div>
+                        <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-100 text-center">
+                          <div className="text-lg font-black text-emerald-700">{remoteDeviceData.installations.length}</div>
+                          <div className="text-[10px] text-slate-500 font-bold">🔧 تركيبات</div>
+                        </div>
+                      </div>
+
+                      {/* قائمة العملاء */}
+                      {remoteDeviceData.users.length > 0 && (
+                        <div>
+                          <p className="text-[11px] font-black text-slate-700 mb-2">📋 صندوق الوارد ({remoteDeviceData.users.length})</p>
+                          <div className="space-y-1.5 max-h-52 overflow-y-auto">
+                            {remoteDeviceData.users.map((u, i) => (
+                              <div key={i} className="p-2.5 bg-white rounded-xl border border-slate-100 text-[10px]">
+                                <div className="flex justify-between items-start gap-2">
+                                  <div>
+                                    <div className="font-black text-slate-800">{[u.fullName, u.fatherName, u.lastName].filter(Boolean).join(' ')}</div>
+                                    <div className="font-mono text-slate-500 mt-0.5">{u.phone}</div>
+                                  </div>
+                                  <div className="text-slate-400 text-[9px] shrink-0">
+                                      {new Date(u.createdAt).toLocaleDateString('ar-EG')}
+                                    </div>
+                                </div>
+                                {u.streetAddress && <div className="text-slate-400 mt-1 truncate">📍 {u.streetAddress}</div>}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* قائمة التركيبات */}
+                      {remoteDeviceData.installations.length > 0 && (
+                        <div>
+                          <p className="text-[11px] font-black text-slate-700 mb-2">🔧 التركيبات ({remoteDeviceData.installations.length})</p>
+                          <div className="space-y-1.5 max-h-52 overflow-y-auto">
+                            {remoteDeviceData.installations.map((inst, i) => (
+                              <div key={i} className="p-2.5 bg-white rounded-xl border border-slate-100 text-[10px]">
+                                <div className="flex justify-between items-start gap-2">
+                                  <div>
+                                    <div className="font-black text-slate-800">{inst.clientName}</div>
+                                    <div className="font-mono text-slate-500">{inst.clientMobile}</div>
+                                    {inst.workerName && <div className="text-slate-400">👷 {inst.workerName}</div>}
+                                  </div>
+                                  <div className="text-slate-400 text-[9px] shrink-0">
+                                    {new Date(inst.createdAt).toLocaleDateString('ar-EG')}
+                                  </div>
+                                </div>
+                                {inst.area && <div className="text-slate-400 mt-1 truncate">📍 {inst.area} {inst.buildingName}</div>}
+                                <div className="mt-1 text-slate-400">🔧 عدد التركيبات: {inst.installationsCount}</div>
+                                {inst.isPaid && <div className="mt-1"><span className="px-1.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-700">✅ مدفوع</span></div>}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* لو مفيش بيانات مرتبطة */}
+                      {remoteDeviceData.users.length === 0 && remoteDeviceData.installations.length === 0 && (
+                        <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-center">
+                          <p className="text-[11px] text-slate-500 font-bold">✅ الجهاز مسجّل — لكن مفيش بيانات مرتبطة بالاسم ده في GitHub</p>
+                          <p className="text-[10px] text-slate-400 mt-1">البيانات بتترفع على GitHub من حساب الأدمن فقط</p>
+                        </div>
+                      )}
+
+                      {/* زرار مسح النتيجة */}
+                      <button
+                        type="button"
+                        onClick={() => { setRemoteStatus('idle'); setRemoteDeviceData(null); setRemoteSearch({ name: '', phone: '' }); }}
+                        className="w-full py-1.5 rounded-xl text-[11px] font-black text-slate-500 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+                      >✕ إغلاق النتيجة</button>
+                    </div>
+                  )}
+                </div>
+
               </div>
             )}
 
