@@ -1027,16 +1027,7 @@ function AppInner() {
         <span>⚠ خطأ في الـ Token</span>
       </span>
     );
-    return (
-      <button
-        type="button"
-        onClick={handleForceManualSync}
-        className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
-        title="نشط — اضغط للمزامنة"
-      >
-        <RefreshCw className="w-4 h-4 text-white" />
-      </button>
-    );
+    return <span className="text-[10px] text-slate-300">نشط</span>;
   };
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -1064,34 +1055,36 @@ function AppInner() {
         className="w-full py-3 px-4 border-b border-white/20 text-white flex items-center justify-between sticky top-0 z-40 shadow-sm backdrop-blur-md select-none"
         style={{ backgroundColor: theme.primary }}
       >
-        {/* يسار: ترس + لوجو متجاورين */}
-        <div className="flex items-center gap-2">
+        {/* يسار: ترس لوحة الإدارة */}
+        <div className="flex items-center">
           <button
             type="button"
             onClick={handleOpenSettings}
-            className="w-11 h-11 rounded-full bg-white/15 hover:bg-white/25 active:scale-95 text-white transition cursor-pointer flex items-center justify-center border border-white/20"
+            className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition cursor-pointer flex items-center justify-center"
             title="لوحة الإدارة"
           >
             <Settings className="w-5 h-5" />
           </button>
-          <div className="w-11 h-11 rounded-full bg-white/15 flex items-center justify-center border border-white/20 overflow-hidden">
+        </div>
+
+        {/* وسط: Logo + اسم الموقع */}
+        <div className="flex items-center gap-2">
+          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 shadow-lg overflow-hidden">
             {appConfig.logoBase64
               ? <img src={appConfig.logoBase64} alt="Logo" className="w-full h-full object-cover" />
               : <Sparkles className="w-5 h-5 text-amber-400" />
             }
           </div>
+          <div className="text-right">
+            <h1 className="text-base sm:text-lg font-black font-sans leading-none text-white">
+              {appConfig.websiteTitle || 'Group m'}
+            </h1>
+            <span className="text-[9px] text-slate-300 block mt-0.5">سحابي مباشر • Secure Cloud Sync</span>
+          </div>
         </div>
 
-        {/* وسط-يمين: اسم الموقع */}
-        <div className="flex-1 text-center px-2">
-          <h1 className="text-base sm:text-lg font-black font-sans leading-none text-white">
-            {appConfig.websiteTitle || 'Group m'}
-          </h1>
-          <span className="text-[9px] text-slate-300 block mt-0.5">سحابي مباشر • Secure Cloud Sync</span>
-        </div>
-
-        {/* أقصى يمين: Sync أيقونة فقط */}
-        <div className="flex items-center justify-end">
+        {/* يمين: Sync HUD (نشط) */}
+        <div className="flex items-center justify-end min-w-[40px]">
           <SyncHud />
         </div>
       </header>
