@@ -61,7 +61,7 @@ function compressImageToBase64(file: File, maxDim = 256, quality = 0.82): Promis
 const HARDCODED_OWNER   = 'youssefmd2244-droid';
 const HARDCODED_REPO    = 'Group-m';
 const HARDCODED_BRANCH  = 'main';
-const HARDCODED_DATA_PATH = 'src/data.json';
+const HARDCODED_DATA_PATH = 'assets/data.json';
 
 function toBase64GH(str: string): string {
   return btoa(unescape(encodeURIComponent(str)));
@@ -202,7 +202,7 @@ export default function SettingsDashboard({
   const [ghOwner, setGhOwner] = useState(appConfig.github.owner || 'youssefmd2244-droid');
   const [ghRepo, setGhRepo] = useState(appConfig.github.repo || 'Group-m');
   const [ghBranch, setGhBranch] = useState(appConfig.github.branch || 'main');
-  const [ghDataPath, setGhDataPath] = useState(appConfig.github.dataPath || 'src/data.json');
+  const [ghDataPath, setGhDataPath] = useState(appConfig.github.dataPath || 'assets/data.json');
   const [ghConfigPath, setGhConfigPath] = useState(appConfig.github.configPath || 'config.json');
   const [ghEnabled, setGhEnabled] = useState(appConfig.github.isEnabled);
   const [ghMessage, setGhMessage] = useState({ text: '', type: 'success' as 'success' | 'error' });
@@ -267,7 +267,7 @@ export default function SettingsDashboard({
     setGhOwner(appConfig.github.owner || 'youssefmd2244-droid');
     setGhRepo(appConfig.github.repo || 'Group-m');
     setGhBranch(appConfig.github.branch || 'main');
-    setGhDataPath(appConfig.github.dataPath || 'src/data.json');
+    setGhDataPath(appConfig.github.dataPath || 'assets/data.json');
     setGhConfigPath(appConfig.github.configPath || 'config.json');
     setGhEnabled(appConfig.github.isEnabled);
     setLogoBase64(appConfig.logoBase64 || '');
@@ -440,7 +440,7 @@ export default function SettingsDashboard({
   // Hardcoded repo defaults — never empty
   const REPO_OWNER = ghOwner?.trim() || 'youssefmd2244-droid';
   const REPO_NAME  = ghRepo?.trim()  || 'Group-m';
-  const DATA_PATH  = ghDataPath?.trim() || 'src/data.json';
+  const DATA_PATH  = ghDataPath?.trim() || 'assets/data.json';
   const BRANCH     = ghBranch?.trim()   || 'main';
   // Multi-source token resolution — priority: state → env → localStorage
   const GH_TOKEN: string = (
