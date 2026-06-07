@@ -2,12 +2,14 @@
  * DeviceIdentity.tsx
  * ══════════════════════════════════════════════════════════════════
  * نظام تعريف الجهاز — يُعرض مرة واحدة فقط أول مرة يُفتح الموقع
- * البيانات تُحفظ في localStorage بـ 3 مفاتيح (redundancy) ولا تُمسح أبداً
+ * البيانات تُحفظ في 3 مفاتيح localStorage + sessionStorage + IndexedDB
+ * ولا تُمسح أبداً حتى لو اتغير رابط Vercel
  * ══════════════════════════════════════════════════════════════════
  */
 
 import React, { useState } from 'react';
 import { Smartphone, User, Phone, CheckCircle, Shield } from 'lucide-react';
+import { guardedSet, guardedGet } from '../utils/storageGuard';
 
 // ── مفاتيح localStorage ──────────────────────────────────────────
 export const DEVICE_KEY_PRIMARY  = 'group_m_device_primary';
@@ -45,40 +47,54 @@ function generateDeviceId(): string {
   return `DEV-${base}-${rand}`;
 }
 
-// ── قراءة بيانات الجهاز الحالي ──────────────────────────────────
+// ── قراءة بيانات الجهاز الحالي (من كل المصادر الممكنة) ──────────
 export function readCurrentDevice(): DeviceInfo | null {
   try {
+    // نقرأ من كل مصدر — guardedGet بيجرب localStorage + sessionStorage
     const raw =
+      guardedGet(DEVICE_KEY_PRIMARY) ||
+      guardedGet(DEVICE_KEY_BACKUP1) ||
+      guardedGet(DEVICE_KEY_BACKUP2) ||
+      // Fallback مباشر لـ localStorage
       localStorage.getItem(DEVICE_KEY_PRIMARY) ||
       localStorage.getItem(DEVICE_KEY_BACKUP1) ||
       localStorage.getItem(DEVICE_KEY_BACKUP2);
-    if (!raw) return null;
+    if (!raw || raw === 'null' || raw === 'undefined') return null;
     return JSON.parse(raw) as DeviceInfo;
   } catch {
     return null;
   }
 }
 
-// ── حفظ بيانات الجهاز الحالي (3 مفاتيح) ────────────────────────
+// ── حفظ بيانات الجهاز الحالي (localStorage + sessionStorage + IndexedDB) ─
 export function saveCurrentDevice(info: DeviceInfo): void {
   const str = JSON.stringify(info);
+
+  // حفظ في localStorage (3 مفاتيح)
   try { localStorage.setItem(DEVICE_KEY_PRIMARY, str); } catch (_) {}
   try { localStorage.setItem(DEVICE_KEY_BACKUP1, str); } catch (_) {}
   try { localStorage.setItem(DEVICE_KEY_BACKUP2, str); } catch (_) {}
+
+  // حفظ في sessionStorage + IndexedDB عبر guardedSet
+  guardedSet(DEVICE_KEY_PRIMARY, str);
+  guardedSet(DEVICE_KEY_BACKUP1, str);
+  guardedSet(DEVICE_KEY_BACKUP2, str);
 
   // إضافة للقائمة العامة
   const list = readDevicesList();
   const idx  = list.findIndex(d => d.deviceId === info.deviceId);
   if (idx >= 0) list[idx] = info;
   else list.push(info);
-  try { localStorage.setItem(DEVICES_LIST_KEY, JSON.stringify(list)); } catch (_) {}
+  const listStr = JSON.stringify(list);
+  try { localStorage.setItem(DEVICES_LIST_KEY, listStr); } catch (_) {}
+  guardedSet(DEVICES_LIST_KEY, listStr);
 }
 
 // ── قراءة قائمة الأجهزة ─────────────────────────────────────────
 export function readDevicesList(): DeviceInfo[] {
   try {
-    const raw = localStorage.getItem(DEVICES_LIST_KEY);
-    if (!raw) return [];
+    const raw = guardedGet(DEVICES_LIST_KEY) || localStorage.getItem(DEVICES_LIST_KEY);
+    if (!raw || raw === 'null') return [];
     return JSON.parse(raw) as DeviceInfo[];
   } catch {
     return [];
