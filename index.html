@@ -1,60 +1,88 @@
-@import "tailwindcss";
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Group M</title>
 
-@keyframes spin3D {
-  0% {
-    transform: perspective(400px) rotateY(0deg) translateY(0px);
-  }
-  50% {
-    transform: perspective(400px) rotateY(180deg) translateY(-3px);
-  }
-  100% {
-    transform: perspective(400px) rotateY(360deg) translateY(0px);
-  }
-}
+    <!--
+    ╔══════════════════════════════════════════════════════════════╗
+    ║  🛡️ حارس localStorage — يعمل قبل React بـ milliseconds     ║
+    ║  يمنع ضياع بيانات الجهاز عند فتح الموقع من روابط مختلفة   ║
+    ╚══════════════════════════════════════════════════════════════╝
+    -->
+    <script>
+      (function() {
+        'use strict';
 
-@keyframes rgbNeonGlow {
-  0%, 100% {
-    box-shadow: 0 0 14px rgba(20, 184, 166, 0.85), 0 0 28px rgba(20, 184, 166, 0.45);
-    border-color: rgba(20, 184, 166, 0.85);
-  }
-  33% {
-    box-shadow: 0 0 14px rgba(236, 72, 153, 0.9), 0 0 28px rgba(236, 72, 153, 0.5);
-    border-color: rgba(236, 72, 153, 0.9);
-  }
-  66% {
-    box-shadow: 0 0 14px rgba(245, 158, 11, 0.85), 0 0 28px rgba(245, 158, 11, 0.5);
-    border-color: rgba(245, 158, 11, 0.85);
-  }
-}
+        // المفاتيح المحمية
+        var DEVICE_KEYS = [
+          'group_m_device_primary',
+          'group_m_device_bk1',
+          'group_m_device_bk2',
+          'group_m_devices_list'
+        ];
 
-@keyframes titlePulseShift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
+        var GH_KEYS = [
+          'gh_token_primary',
+          'gh_token_backup_1',
+          'gh_token_backup_2',
+          'gh_owner', 'gh_repo', 'gh_branch', 'gh_data_path', 'gh_last_sha'
+        ];
 
-.animate-3d-spin-float {
-  animation: spin3D 5s linear infinite;
-  transform-style: preserve-3d;
-  display: inline-block;
-  will-change: transform;
-  backface-visibility: visible;
-}
+        var ALL_KEYS = DEVICE_KEYS.concat(GH_KEYS).concat([
+          'group_m_config', 'group_m_users', 'group_m_installations'
+        ]);
 
-.animate-rgb-glow {
-  animation: rgbNeonGlow 4s ease-in-out infinite;
-}
+        // تحقق إن localStorage شغال
+        var lsOk = false;
+        try {
+          localStorage.setItem('__t', '1');
+          lsOk = localStorage.getItem('__t') === '1';
+          localStorage.removeItem('__t');
+        } catch(e) {}
 
-.animate-title-futuristic {
-  background: linear-gradient(90deg, #14b8a6, #f59e0b, #ec4899, #3b82f6, #14b8a6);
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: titlePulseShift 6s linear infinite;
-}
+        if (!lsOk) return; // Private Mode — مش نقدر نعمل حاجه
+
+        // استرجاع من sessionStorage لو localStorage فاضي
+        ALL_KEYS.forEach(function(key) {
+          try {
+            var lsVal = localStorage.getItem(key);
+            if (!lsVal || lsVal === 'null' || lsVal === 'undefined') {
+              // localStorage فاضي — نجيب من sessionStorage
+              var ssVal = sessionStorage.getItem('__guard__' + key);
+              if (ssVal && ssVal !== 'null' && ssVal !== 'undefined') {
+                localStorage.setItem(key, ssVal);
+                console.info('[IndexGuard] ✅ استُرد: ' + key);
+              }
+            } else {
+              // localStorage تمام — نحدث sessionStorage
+              sessionStorage.setItem('__guard__' + key, lsVal);
+            }
+          } catch(e) {}
+        });
+
+        // إضافة: نتأكد إن مفاتيح الجهاز الثلاثة متزامنة مع بعض
+        var primary = null;
+        try { primary = localStorage.getItem('group_m_device_primary'); } catch(e) {}
+        var bk1 = null;
+        try { bk1 = localStorage.getItem('group_m_device_bk1'); } catch(e) {}
+        var bk2 = null;
+        try { bk2 = localStorage.getItem('group_m_device_bk2'); } catch(e) {}
+
+        var bestVal = primary || bk1 || bk2;
+        if (bestVal) {
+          // نتأكد إن الثلاثة موجودين
+          if (!primary) try { localStorage.setItem('group_m_device_primary', bestVal); } catch(e) {}
+          if (!bk1)     try { localStorage.setItem('group_m_device_bk1', bestVal); } catch(e) {}
+          if (!bk2)     try { localStorage.setItem('group_m_device_bk2', bestVal); } catch(e) {}
+        }
+
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
