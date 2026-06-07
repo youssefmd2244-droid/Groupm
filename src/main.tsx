@@ -1,40 +1,35 @@
+/**
+ * main.tsx — Entry Point
+ * ══════════════════════════════════════════════════════════
+ * ✅ لا top-level await
+ * ✅ لا import conflicts
+ * ✅ Bridge يشتغل قبل React مباشرة
+ * ══════════════════════════════════════════════════════════
+ */
+
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { registerServiceWorker } from './serviceWorkerRegistration';
-import { initStorageGuard, startStorageWatcher } from './utils/storageGuard';
+import { Bridge } from './utils/appBridge';
+import { initStorageGuard } from './utils/storageGuard';
 
-// ══════════════════════════════════════════════════════════════════
-// 🛡️ الخطوة الأولى: تشغيل حارس التخزين قبل أي حاجة تانية
-// هيسترجع بيانات الجهاز لو اتضاع، وهيحمي من Vercel redeployments
-// ══════════════════════════════════════════════════════════════════
-initStorageGuard().then(() => {
-  // بعد ما الحارس يتأكد من البيانات، نشغل التطبيق
-  const cleanup = startStorageWatcher();
+// ── 1. تهيئة حارس التخزين (sync — قبل React) ──────────────
+initStorageGuard();
 
-  // تسجيل Service Worker
-  registerServiceWorker();
+// ── 2. تهيئة الجسر (sync — يربط كل الملفات) ───────────────
+Bridge.init();
 
-  // تشغيل React
-  createRoot(document.getElementById('root')!).render(
+// ── 3. تشغيل React ──────────────────────────────────────────
+const rootEl = document.getElementById('root');
+if (rootEl) {
+  createRoot(rootEl).render(
     <StrictMode>
       <App />
-    </StrictMode>,
+    </StrictMode>
   );
+}
 
-  // cleanup عند إغلاق الصفحة
-  window.addEventListener('beforeunload', cleanup);
-
-}).catch((err) => {
-  // حتى لو الحارس فشل، التطبيق يشتغل عادي
-  console.warn('[main] StorageGuard error (non-fatal):', err);
-
-  registerServiceWorker();
-
-  createRoot(document.getElementById('root')!).render(
-    <StrictMode>
-      <App />
-    </StrictMode>,
-  );
-});
+// ── 4. Service Worker ────────────────────────────────────────
+registerServiceWorker();
