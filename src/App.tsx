@@ -38,6 +38,7 @@ import SettingsDashboard  from './components/SettingsDashboard';
 import InstallationForm   from './components/InstallationForm';
 import RegistrationForm   from './components/RegistrationForm';
 import FloatingButtons    from './components/FloatingButtons';
+import DeviceIdentity, { readCurrentDevice, DeviceInfo } from './components/DeviceIdentity';
 import { getDefaultFieldsSchema }   from './utils/defaultFields';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -711,6 +712,9 @@ function AppInner() {
   const [showSettings,  setShowSettings]  = useState(false);
   const [showPassGate,  setShowPassGate]  = useState(false);
 
+  // ── نظام تعريف الجهاز ─────────────────────────────────────────────────────
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(() => readCurrentDevice());
+
   // ── Data ───────────────────────────────────────────────────────────────────
   // ✅ دائماً نحمل من localStorage — العرض للأدمن فقط في SettingsDashboard
   const [users, setUsers] = useState<UserRecord[]>(() =>
@@ -1029,6 +1033,17 @@ function AppInner() {
   // ─────────────────────────────────────────────────────────────────────────
   // 🖼️ Render
   // ─────────────────────────────────────────────────────────────────────────
+
+  // ── شاشة تسجيل الجهاز — تظهر مرة واحدة فقط ──────────────────────────────
+  if (!deviceInfo) {
+    return (
+      <DeviceIdentity
+        primaryColor={appConfig.theme?.primary || '#0f172a'}
+        onComplete={(info) => setDeviceInfo(info)}
+      />
+    );
+  }
+
   return (
     <div
       className="min-h-screen flex flex-col transition-all duration-500 overflow-x-hidden relative"
