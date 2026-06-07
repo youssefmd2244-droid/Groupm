@@ -129,12 +129,15 @@ export default function FloatingButtons({
               setShowWhatsappMenu(false);
             }
           }}
-          className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 hover:scale-110 active:scale-95 focus:outline-none cursor-pointer hover:shadow-xl animate-3d-spin-float animate-rgb-glow border-2"
-          style={{ backgroundColor: theme.primary || '#1e293b' }}
+          className="w-16 h-16 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
+          style={{
+            backgroundColor: '#0f172a',
+            boxShadow: '0 0 0 3px rgba(255,255,255,0.15), 0 8px 32px rgba(0,0,0,0.5)',
+          }}
           title="اتصال هاتفي"
           id="floating-call-btn"
         >
-          <Phone className="w-6 h-6 animate-pulse" />
+          <Phone className="w-7 h-7" />
         </button>
       </div>
 
@@ -184,12 +187,15 @@ export default function FloatingButtons({
               setShowCallMenu(false);
             }
           }}
-          className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white bg-emerald-500 hover:bg-emerald-600 transition-all duration-300 hover:scale-110 active:scale-95 focus:outline-none cursor-pointer hover:shadow-xl animate-3d-spin-float animate-rgb-glow border-2"
-          style={{ borderColor: theme.accent || '#10b981' }}
+          className="w-16 h-16 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
+          style={{
+            backgroundColor: '#10b981',
+            boxShadow: '0 0 0 3px rgba(16,185,129,0.3), 0 8px 32px rgba(16,185,129,0.4)',
+          }}
           title="تواصل واتساب"
           id="floating-whatsapp-btn"
         >
-          <MessageCircle className="w-6 h-6 animate-pulse" />
+          <MessageCircle className="w-7 h-7" />
         </button>
       </div>
     </>
